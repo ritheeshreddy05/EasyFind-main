@@ -1,4 +1,3 @@
-// filepath: /d:/EasyFind/backend/config/passport.js
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const User = require("../models/User");
@@ -13,11 +12,18 @@ passport.use(
     async (accessToken, refreshToken, profile, done) => {
       try {
         console.log("Google profile:", profile);
+        const email = profile.emails[0].value;
+        const emailDomain = email.split('@')[1];
+
+        if (emailDomain !== 'vnrvjiet.in') {
+          return done(null, false, { message: 'Unauthorized domain' });
+        }
+
         let user = await User.findOne({ googleId: profile.id });
         if (!user) {
           user = new User({
             googleId: profile.id,
-            email: profile.emails[0].value,
+            email: email,
             name: profile.displayName,
           });
           await user.save();
