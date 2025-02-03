@@ -55,10 +55,25 @@ router.get(
 
 router.get(
   "/google/callback",
-  passport.authenticate("google", { 
-    session: false,
-    failureRedirect: '/login?auth=failed' 
-  }),
+  (req, res, next) => {
+    passport.authenticate("google", { session: false }, (err, user, info) => {
+      if (err) {
+        return res.redirect(
+          `${process.env.FRONTEND_URL}/login?error=${encodeURIComponent(err.message)}`
+        );
+      }
+      
+      if (!user) {
+        const errorMessage = info?.message || 'Authentication failed';
+        return res.redirect(
+          `${process.env.FRONTEND_URL}/login?error=${encodeURIComponent(errorMessage)}`
+        );
+      }
+
+      req.user = user;
+      next();
+    })(req, res, next);
+  },
   handleGoogleCallback
 );
 router.post("/set-password", setPassword);
