@@ -1,12 +1,13 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Dashboard from './pages/Dashboard';
-import SetPassword from './pages/SetPassword';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import GoogleLoginButton from './components/GoogleLoginButton';
-import UserProfile from './components/UserProfile';
-import ReportItem from './components/ReportItem';
+import Dashboard from '../components/UserHome';
+import SetPassword from '../components/SetPassword';
+import { AuthProvider, useAuth } from '../contexts/AuthContext';
+import GoogleLoginButton from '../components/GoogleLoginButton';
+import UserProfile from '../components/UserProfile';
+import ReportItem from '../components/ReportItem';
+import SearchItem from '../components/SearchItem';
 
-const ProtectedRoute = ({ children }) => {
+function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
@@ -18,7 +19,7 @@ const ProtectedRoute = ({ children }) => {
   }
 
   return children;
-};
+}
 
 const App = () => {
   return (
@@ -46,6 +47,13 @@ const App = () => {
               <ReportItem />
             </ProtectedRoute>
           } />
+          
+          <Route path="/dashboard/search-item" element={
+            <ProtectedRoute>
+              <SearchItem />
+            </ProtectedRoute>
+          } />  
+
           <Route path="*" element={<Navigate to="/dashboard" />} />
         </Routes>
       </Router>

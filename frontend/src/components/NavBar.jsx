@@ -7,7 +7,7 @@ const Header = () => {
 
   return (
     <header className="flex justify-between items-center p-4 bg-gray-100 shadow-md">
-      <h1 className="text-xl font-bold">Lost and Found System</h1>
+      <h1 className="text-xl font-bold">EasyFind</h1>
       <div className="flex gap-4">
         {user && (
           <>
@@ -15,7 +15,13 @@ const Header = () => {
               onClick={() => navigate('/dashboard/report-item')}
               className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300"
             >
-              User Profile
+              Report Item
+            </button>
+            <button
+              onClick={() => navigate('/dashboard/search-item')}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300"
+            >
+              Search Item
             </button>
             <button
               onClick={() => navigate('/dashboard/user-profile')}

@@ -1,4 +1,4 @@
-import Header from '../components/Header';
+import Header from './NavBar';
 import { useAuth } from '../contexts/AuthContext';
 
 const Dashboard = () => {
@@ -14,5 +14,7 @@ const Dashboard = () => {
     </div>
   );
 };
+
+
 
 export default Dashboard;
