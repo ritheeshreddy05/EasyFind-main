@@ -28,7 +28,7 @@ router.post('/found', upload.single('image'), async (req, res) => {
             });
         }
 
-        const { title, description, foundLocation, reporterRollNo } = req.body;
+        const { title, description, foundLocation, reporterRollNo ,category} = req.body;
 
         // Validate required fields
         if (!title || !description || !foundLocation || !reporterRollNo) {
@@ -49,7 +49,8 @@ router.post('/found', upload.single('image'), async (req, res) => {
             image: {
                 url: req.file.path,
                 public_id: req.file.filename
-            }
+            },
+            category
         };
 
         console.log('Creating item with data:', itemData);
@@ -75,7 +76,7 @@ router.post('/found', upload.single('image'), async (req, res) => {
 // Search for found items
 router.get('/found', async (req, res) => {
     try {
-        const foundItems = await FoundItem.find(req.query);
+        const foundItems = await FoundItem.find();
         res.status(200).json(foundItems);
     } catch (error) {
         res.status(400).json({ message: 'Error searching for found items', error });

@@ -7,3 +7,6 @@ Content-Type: application/json
   "itemName": "Blue Backpack"
   
 }
+
+###GET
+GET http://localhost:5000/api/items/found

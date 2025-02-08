@@ -20,7 +20,8 @@ const foundItemSchema = new mongoose.Schema(
         },
         image: {
             url: String,
-            public_id: String
+            public_id: String,
+            
         },
         category:{
             type:String,
