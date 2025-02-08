@@ -4,15 +4,18 @@ const foundItemSchema = new mongoose.Schema(
     {
         itemName: {
             type: String,
-            required: true
+            
+        },
+        image:{
+            type:String,
         },
         category: {
             type: String,
-            required: true
+            
         },
         locationFound: {
             type: String,
-            required: true
+           
         },
         submittedBy: {
             type: mongoose.Schema.Types.ObjectId,
