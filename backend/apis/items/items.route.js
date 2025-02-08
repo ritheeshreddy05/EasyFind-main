@@ -17,53 +17,60 @@ router.post('/lost', async (req, res) => {
 });
 
 // Submit a found item
+// Create new item
 router.post('/found', upload.single('image'), async (req, res) => {
     try {
-        // Create item data with default handoverLocation
-        const itemData = {
-            itemName: req.body.title,
-            description: req.body.description,
-            foundLocation: req.body.foundLocation,
-            reporterRollNo: req.body.reporterRollNo,
-            handoverLocation: 'Security Office', // Set default value
-            status: 'pending'
-        };
-
-        // Add image if uploaded
-        if (req.file) {
-            itemData.image = {
-                url: req.file.path,
-                public_id: req.file.filename
-            };
+        // Check if an image file was uploaded
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: 'Image file is required'
+            });
         }
 
-        console.log('Creating item with data:', itemData); // Debug log
+        const { title, description, foundLocation, reporterRollNo } = req.body;
 
+        // Validate required fields
+        if (!title || !description || !foundLocation || !reporterRollNo) {
+            return res.status(400).json({
+                success: false,
+                message: 'All fields (title, description, foundLocation, reporterRollNo) are required'
+            });
+        }
+
+        // Prepare item data with default handover location
+        const itemData = {
+            title,
+            description,
+            foundLocation,
+            reporterRollNo,
+            handoverLocation: 'Security Office',
+            status: 'pending',
+            image: {
+                url: req.file.path,
+                public_id: req.file.filename
+            }
+        };
+
+        console.log('Creating item with data:', itemData);
+
+        // Save the new item to the database
         const newItem = new Item(itemData);
         const savedItem = await newItem.save();
 
-        res.status(201).json({
+        return res.status(201).json({
             success: true,
             item: savedItem
         });
     } catch (error) {
         console.error('Error creating item:', error);
-        res.status(400).json({
+        res.status(500).json({
             success: false,
-            message: error.message || 'Error creating item'
+            message: error.message || 'Internal server error'
         });
     }
 });
 
-// Search for lost items
-router.get('/lost', async (req, res) => {
-    try {
-        const lostItems = await LostItem.find(req.query);
-        res.status(200).json(lostItems);
-    } catch (error) {
-        res.status(400).json({ message: 'Error searching for lost items', error });
-    }
-});
 
 // Search for found items
 router.get('/found', async (req, res) => {

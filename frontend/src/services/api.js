@@ -3,9 +3,9 @@ import dotenv from 'dotenv';
 
 // Create an Axios instance with the base URL of your backend
 const api = axios.create({
-  baseURL:  'http://localhost:5000', // Backend URL
+  baseURL: 'http://localhost:5000', // Ensure this matches your backend URL
   headers: {
-    'Content-Type': 'application/json',
+    'Content-Type': 'multipart/form-data',
   },
 });
 

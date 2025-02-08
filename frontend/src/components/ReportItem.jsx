@@ -7,10 +7,11 @@ const ReportItem = ({ onItemReported }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    title: '',
+    itemName: '',
     description: '',
     foundLocation: '',
-    category: ''
+    category: '',
+    handoverLocation: ''
   });
   const [image, setImage] = useState(null);
   const [status, setStatus] = useState('');
@@ -31,6 +32,7 @@ const ReportItem = ({ onItemReported }) => {
     const file = e.target.files[0];
     if (file && file.size <= 5 * 1024 * 1024) {
       setImage(file);
+      setStatus('');
     } else {
       setStatus('Image must be less than 5MB');
       e.target.value = '';
@@ -39,13 +41,19 @@ const ReportItem = ({ onItemReported }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!image) {
+      setStatus('Please upload an image.');
+      return;
+    }
     setLoading(true);
     try {
+      const index = user.email?.indexOf('@');
+      const rollNo = user.email.substring(0, index);
       const data = new FormData();
       Object.keys(formData).forEach((key) => data.append(key, formData[key]));
-      data.append('reporterRollNo', user.email);
-      data.append('handoverLocation', 'Security Office');
+      data.append('reporterRollNo', rollNo);
       if (image) data.append('image', image);
+      else console.log("there is no image")
 
       const response = await submitFoundItem(data);
       if (response.success) {
@@ -122,12 +130,11 @@ const ReportItem = ({ onItemReported }) => {
           onChange={handleImageChange}
           className="w-full p-2 border rounded mb-3"
           accept="image/jpeg,image/jpg,image/png"
+          required
         />
         <button
           type="submit"
-          className={`w-full p-2 bg-blue-500 text-white rounded ${
-            loading ? 'opacity-50' : ''
-          }`}
+          className={`w-full p-2 bg-blue-500 text-white rounded ${loading ? 'opacity-50' : ''}`}
           disabled={loading}
         >
           {loading ? 'Uploading...' : 'Submit'}

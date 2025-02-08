@@ -1,3 +1,15 @@
+// const itemData = {
+//     itemName: req.body.title,
+//     description: req.body.description,
+//     foundLocation: req.body.foundLocation,
+//     reporterRollNo: req.body.reporterRollNo,
+//     handoverLocation: 'Security Office', // Set default value
+//     status: 'pending'
+// };
+
+
+
+
 const mongoose = require("mongoose");
 
 const foundItemSchema = new mongoose.Schema(
@@ -6,20 +18,28 @@ const foundItemSchema = new mongoose.Schema(
             type: String,
             
         },
-        image:{
+        image: {
+            url: String,
+            public_id: String
+        },
+        category:{
+            type:String,
+            // required:true
+        },
+        description:{
             type:String,
         },
-        category: {
+        foundLocation: {
             type: String,
             
         },
-        locationFound: {
+        reporterRollNo: {
             type: String,
            
         },
-        submittedBy: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User"
+        handoverLocation: {
+            type: String,
+            
         },
         status: {
             type: String,
