@@ -25,13 +25,17 @@ export const AuthProvider = ({ children }) => {
       fetchUserProfile1(storedToken);
     }
     setLoading(false);
-  }, [fetchUserProfile]);
+  }, [fetchUserProfile1]);
 
   const handleGoogleCallback = async (newToken, userData) => {
+    try{
     localStorage.setItem('token', newToken);
     setToken(newToken);
     const user = JSON.parse(decodeURIComponent(userData));
     setUser(user);
+    }catch(err){
+      console.log("error occurred at handleGoogleCallBack")
+    }
   };
 
   const logout = () => {

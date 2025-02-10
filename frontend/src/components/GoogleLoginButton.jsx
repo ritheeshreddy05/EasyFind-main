@@ -9,23 +9,31 @@ const GoogleLoginButton = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // Wrap the callback logic so it won't be re-created on every render
   const handleCallback = useCallback(async (token, userData) => {
     setLoading(true);
     try {
-      console.log("before handle Google CallBack")
+      console.log("Before handleGoogleCallback");
       await handleGoogleCallback(token, userData);
-      console.log("after googleHandleCallBack")
-
-      navigate('/dashboard');
+      console.log("After handleGoogleCallback");
+      // Navigate and replace the history so that query parameters are cleared
+      navigate('/dashboard', { replace: true });
     } catch (err) {
-      console.log("error ",err.message)
+      console.log("Error:", err.message);
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [navigate]);
+  }, [handleGoogleCallback, navigate]);
 
   useEffect(() => {
+    // If a token is already stored (i.e. user is already logged in), navigate to dashboard.
+    const existingToken = localStorage.getItem('token');
+    if (existingToken) {
+      navigate('/dashboard', { replace: true });
+      return;
+    }
+
     const params = new URLSearchParams(location.search);
     const token = params.get('token');
     const userData = params.get('userData');
@@ -36,10 +44,10 @@ const GoogleLoginButton = () => {
     }
 
     if (token && userData) {
-      console.log("at the Google Handle callback useEffect")
+      console.log("Processing OAuth callback from URL");
       handleCallback(token, userData);
     }
-  }, [location.search, handleCallback]);
+  }, [location.search, handleCallback, navigate]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
