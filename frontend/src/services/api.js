@@ -1,73 +1,56 @@
-import axios from 'axios';  
-import dotenv from 'dotenv';
+import axios from 'axios';
 
-// Create an Axios instance with the base URL of your backend
 const api = axios.create({
-  baseURL: 'http://localhost:5000', // Ensure this matches your backend URL
-  headers: {
-    'Content-Type': 'multipart/form-data',
-  },
+  baseURL: 'http://localhost:5000',
 });
 
-// Add a request interceptor to include the JWT token in headers
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// Authentication APIs
-const loginWithGoogle = async () => {
-  try {
-    // Redirect to backend Google OAuth endpoint
-    window.location.href = `http://localhost:5000/auth/google`;
-  } catch (error) {
-    console.error('Google login failed:', error);
-    throw error;
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
   }
+);
+
+const loginWithGoogle = () => {
+  window.location.href = 'http://localhost:5000/auth/google';
 };
 
 const setPassword = async (token, password) => {
-  try {
-    const response = await api.post('/auth/set-password', { token, password });
-    return response.data;
-  } catch (error) {
-    console.error('Failed to set password:', error);
-    throw error;
-  }
+  const response = await api.post('/auth/set-password', { token, password });
+  return response.data;
 };
 
 const fetchUserProfile = async () => {
-  try {
-    console.log('Making profile request with token:', localStorage.getItem('token'));
-    const response = await api.get('/api/profile');
-    return response.data;
-  } catch (error) {
-    console.error('Profile fetch error:', error.response?.data || error.message);
-    throw error;
-  }
+  const response = await api.get('/api/profile');
+  return response.data;
 };
 
 const logout = () => {
   localStorage.removeItem('token');
 };
 
-// Item APIs
-const submitFoundItem = async (itemData) => {
-  try {
-    const response = await api.post('/api/items/found', itemData);
-    return response.data;
-  } catch (error) {
-    console.error('Failed to submit found item:', error);
-    throw error;
-  }
-};
-
 const submitLostItem = async (itemData) => {
   try {
     const response = await api.post('/api/items/lost', itemData);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to submit lost item:', error);
+    throw error;
+  }
+};
+const submitFoundItem = async (itemData) => {
+  try {
+    const response = await api.post('/api/items/found', itemData);
     return response.data;
   } catch (error) {
     console.error('Failed to submit lost item:', error);
@@ -94,10 +77,7 @@ const fetchLostItems = async () => {
     throw error;
   }
 };
-
-
-
-export {
+export{
   loginWithGoogle,
   setPassword,
   fetchUserProfile,
