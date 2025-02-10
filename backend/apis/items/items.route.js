@@ -76,11 +76,18 @@ router.post('/found', upload.single('image'), async (req, res) => {
 // Search for found items
 router.get('/found', async (req, res) => {
     try {
-        const foundItems = await FoundItem.find();
-        res.status(200).json(foundItems);
+      // Fetch all items without any query condition
+      const foundItems = await Item.find();
+      
+      if (foundItems.length === 0) {
+        return res.status(404).json({ message: 'No found items available' });
+      }
+  
+      res.status(200).json(foundItems);
     } catch (error) {
-        res.status(400).json({ message: 'Error searching for found items', error });
+      console.error('Error fetching found items:', error);
+      res.status(500).json({ message: 'Internal server error' });
     }
-});
-
+  });
+  
 module.exports = router;

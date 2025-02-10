@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../../models/User');
+const Item=require('../../models/FoundItem')
 const auth = require('../../middlewares/auth');
 
 router.get('/profile', auth, async (req, res) => {
@@ -18,6 +19,7 @@ router.get('/profile', auth, async (req, res) => {
       name: user.name,
       email: user.email,
       hasPassword: user.hasPassword,
+      itemsReported: await Item.countDocuments({ reporterRollNo:"23071a0504" }),
       googleId: user.googleId,
       createdAt: user.createdAt
     });
