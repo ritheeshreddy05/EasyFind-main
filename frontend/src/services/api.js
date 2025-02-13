@@ -1,4 +1,7 @@
 import axios from 'axios';
+import { useAuth } from '../contexts/AuthContext';
+
+
 
 const api = axios.create({
   baseURL: 'http://localhost:5000',
@@ -48,12 +51,13 @@ const submitLostItem = async (itemData) => {
     throw error;
   }
 };
+
 const submitFoundItem = async (itemData) => {
   try {
     const response = await api.post('/api/items/found', itemData);
     return response.data;
   } catch (error) {
-    console.error('Failed to submit lost item:', error);
+    console.error('Failed to submit found item:', error);
     throw error;
   }
 };
@@ -77,7 +81,27 @@ const fetchLostItems = async () => {
     throw error;
   }
 };
-export{
+
+const fetchReportedItems = async (user) => {
+  try {
+    if (!user?.email) throw new Error("User email is required");
+    
+    // Extract roll number from email
+    const atIndex = user.email.indexOf('@');
+    if (atIndex === -1) throw new Error("Invalid email format");
+    
+    const rollNo = user.email.substring(0, atIndex);
+
+    const response = await api.get(`/api/items/reported/${rollNo}`);
+    return response.data;
+  } catch (err) {
+    console.error("Failed to fetch reported items:", err);
+    throw err;
+  }
+};
+
+
+export {
   loginWithGoogle,
   setPassword,
   fetchUserProfile,
@@ -86,4 +110,5 @@ export{
   submitLostItem,
   fetchFoundItems,
   fetchLostItems,
+  fetchReportedItems,
 };

@@ -18,6 +18,12 @@ const Header = () => {
               Report Item
             </button>
             <button
+              onClick={() => navigate('/dashboard/lost-item')}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300"
+            >
+              Lost Item?
+            </button>
+            <button
               onClick={() => navigate('/dashboard/search-item')}
               className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300"
             >

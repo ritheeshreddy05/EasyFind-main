@@ -10,3 +10,24 @@ Content-Type: application/json
 
 ###GET
 GET http://localhost:5000/api/items/found
+
+###POST Lost Items
+POST http://localhost:5000/api/items/lost
+Content-Type: application/json
+
+{
+  "category":"hello",
+  "email":"@gmal.com"
+}
+
+###
+GET http://localhost:5000/api/items/reported/23071a0504
+###
+DELETE http://localhost:5000/api/items/reported/67a71c4af59b441d6ce6aadb
+
+###
+GET http://localhost:5000/api/items/lost-items/23071a0504@vnrvjiet.in
+
+###
+DELETE http://localhost:5000/api/items/lost-items/23071a0504@vnrvjiet.in
+

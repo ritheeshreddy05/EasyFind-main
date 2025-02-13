@@ -6,6 +6,7 @@ import GoogleLoginButton from '../components/GoogleLoginButton';
 import UserProfile from '../components/UserProfile';
 import ReportItem from '../components/ReportItem';
 import SearchItem from '../components/SearchItem';
+import NotifyLostItem from '../components/NotifyLostItem'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -51,6 +52,11 @@ const App = () => {
           <Route path="/dashboard/search-item" element={
             <ProtectedRoute>
               <SearchItem />
+            </ProtectedRoute>
+          } />  
+          <Route path="/dashboard/lost-item" element={
+            <ProtectedRoute>
+             <NotifyLostItem/>
             </ProtectedRoute>
           } />  
 
