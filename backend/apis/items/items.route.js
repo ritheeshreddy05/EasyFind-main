@@ -18,61 +18,115 @@ router.post('/lost', async (req, res) => {
     }
 });
 
+
+
+// Function to generate a random 4-character alphanumeric code
+function generateCode() {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let code = "";
+  for (let i = 0; i < 4; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+// Function to ensure the code is unique
+async function generateUniqueCode() {
+  let code;
+  let exists = true;
+  while (exists) {
+      code = generateCode();
+      exists = await Item.exists({ code });
+  }
+  return code;
+}
+
 // Submit a found item
 // Create new item
 router.post('/found', upload.single('image'),auth, async (req, res) => {
-    try {
-        // Check if an image file was uploaded
-        if (!req.file) {
-            return res.status(400).json({
-                success: false,
-                message: 'Image file is required'
-            });
-        }
+  try {
+      // Check if an image file was uploaded
+      if (!req.file) {
+          return res.status(400).json({
+              success: false,
+              message: 'Image file is required'
+          });
+      }
 
-        const { title, description, foundLocation, reporterRollNo ,category} = req.body;
+      const { title, description, foundLocation, reporterRollNo, category } = req.body;
 
-        // Validate required fields
-        if (!title || !description || !foundLocation || !reporterRollNo) {
-            return res.status(400).json({
-                success: false,
-                message: 'All fields (title, description, foundLocation, reporterRollNo) are required'
-            });
-        }
+      // Validate required fields
+      if (!title || !description || !foundLocation || !reporterRollNo) {
+          return res.status(400).json({
+              success: false,
+              message: 'All fields (title, description, foundLocation, reporterRollNo) are required'
+          });
+      }
 
-        // Prepare item data with default handover location
-        const itemData = {
-            title,
-            description,
-            foundLocation,
-            reporterRollNo,
-            handoverLocation: 'Security Office',
-            status: 'pending',
-            image: {
-                url: req.file.path,
-                public_id: req.file.filename
-            },
-            category
-        };
+      // Generate a unique 4-character code
+      const uniqueCode = await generateUniqueCode();
 
-        console.log('Creating item with data:', itemData);
+      // Prepare item data with default handover location
+      const itemData = {
+          title,
+          description,
+          foundLocation,
+          reporterRollNo,
+          handoverLocation: 'Security Office',
+          status: 'pending',
+          code: uniqueCode, // Assign the generated unique code
+          image: {
+              url: req.file.path,
+              public_id: req.file.filename
+          },
+          category
+      };
 
-        // Save the new item to the database
-        const newItem = new Item(itemData);
-        const savedItem = await newItem.save();
+      console.log('Creating item with data:', itemData);
 
-        return res.status(201).json({
-            success: true,
-            item: savedItem
-        });
-    } catch (error) {
-        console.error('Error creating item:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Internal server error'
-        });
-    }
+      // Save the new item to the database
+      const newItem = new Item(itemData);
+      const savedItem = await newItem.save();
+
+      return res.status(201).json({
+          success: true,
+          item: savedItem
+      });
+  } catch (error) {
+      console.error('Error creating item:', error);
+      res.status(500).json({
+          success: false,
+          message: error.message || 'Internal server error'
+      });
+  }
 });
+
+// admin upload
+router.post('/admin/upload', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ success: false, message: 'Image required' });
+
+    const { itemName, description, foundLocation, category } = req.body;
+    if (!itemName || !description || !foundLocation || !category) 
+      return res.status(400).json({ success: false, message: 'All fields are required' });
+
+    const newItem = await Item.create({
+      itemName,
+      description,
+      foundLocation,
+      category,
+      handoverLocation: 'Security Office',
+      status: 'verified', // Admin uploads directly as verified
+      code: await generateUniqueCode(),
+      image: { url: req.file.path, public_id: req.file.filename }
+    });
+    console.log("item created with data from admin",newItem)
+    res.status(201).json({ success: true, item: newItem });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 
 
 // Search for found items
