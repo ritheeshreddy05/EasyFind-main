@@ -19,7 +19,7 @@ const ReportItem = ({ onItemReported }) => {
   const [successMessage, setSuccessMessage] = useState('');
 
   const resetForm = () => {
-    setFormData({ title: '', description: '', foundLocation: '', category: '' });
+    setFormData({ itemName: '', description: '', foundLocation: '', category: '' });
     setImage(null);
     setStatus('');
   };
@@ -82,8 +82,8 @@ const ReportItem = ({ onItemReported }) => {
       <form onSubmit={handleSubmit}>
         <input
           type="text"
-          name="title"
-          value={formData.title}
+          name="itemName"
+          value={formData.itemName}
           onChange={handleChange}
           placeholder="Item title"
           className="w-full p-2 border rounded mb-3"

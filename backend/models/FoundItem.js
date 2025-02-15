@@ -4,10 +4,12 @@ const foundItemSchema = new mongoose.Schema(
     {
         code: {
             type: String,
-            required: true
+            required: true,
+            unique: true,
         },
         itemName: {
             type: String,
+            required: true,
         },
         image: {
             url: String,
@@ -15,15 +17,19 @@ const foundItemSchema = new mongoose.Schema(
         },
         category: {
             type: String,
+            required: true,
         },
         description: {
             type: String,
         },
         foundLocation: {
             type: String,
+            required: true,
         },
         reporterRollNo: {
             type: String,
+            default:"admin",
+            required: true,
         },
         handoverLocation: {
             type: String,
@@ -31,7 +37,7 @@ const foundItemSchema = new mongoose.Schema(
         status: {
             type: String,
             enum: ["pending", "verified", "claimed"],
-            default: "pending"
+            default: "pending",
         },
         claimerDetails: {
             name: {
@@ -40,16 +46,23 @@ const foundItemSchema = new mongoose.Schema(
             rollNo: {
                 type: String,
             },
+            contact: {
+                type: String,
+            },
+            dateHandovered: {
+                type: Date,
+                default: Date.now,
+            },
             proofs: [
                 {
                     url: String,
                     public_id: String,
-                }
-            ]
-        }
+                },
+            ],
+        },
     },
     {
-        timestamps: true
+        timestamps: true,
     }
 );
 

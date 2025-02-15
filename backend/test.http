@@ -34,3 +34,12 @@ DELETE http://localhost:5000/api/items/lost-items/23071a0504@vnrvjiet.in
 ###
 POST  http://localhost:5000/api/items/reported
 
+###
+PUT http://localhost:5000/api/items/admin/67af65cbd3be4890808c4880/handover
+Content-Type: application/json
+
+{
+  "status":"claimed"
+}
+
+

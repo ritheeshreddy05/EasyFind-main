@@ -5,6 +5,7 @@ const LostItem = require('../../models/LostItem');
 const Item = require('../../models/FoundItem');
 const { upload, cloudinary } = require('../../config/cloudinary')
 const  auth =require('../../middlewares/auth')
+const sendEmail = require("../../utils/notifications");
 
 // Submit a lost item
 router.post('/lost', async (req, res) => {
@@ -53,10 +54,10 @@ router.post('/found', upload.single('image'),auth, async (req, res) => {
           });
       }
 
-      const { title, description, foundLocation, reporterRollNo, category } = req.body;
+      const { itemName, description, foundLocation, reporterRollNo, category } = req.body;
 
       // Validate required fields
-      if (!title || !description || !foundLocation || !reporterRollNo) {
+      if (!itemName || !description || !foundLocation || !reporterRollNo) {
           return res.status(400).json({
               success: false,
               message: 'All fields (title, description, foundLocation, reporterRollNo) are required'
@@ -68,7 +69,7 @@ router.post('/found', upload.single('image'),auth, async (req, res) => {
 
       // Prepare item data with default handover location
       const itemData = {
-          title,
+          itemName,
           description,
           foundLocation,
           reporterRollNo,
@@ -101,31 +102,7 @@ router.post('/found', upload.single('image'),auth, async (req, res) => {
   }
 });
 
-// admin upload
-router.post('/admin/upload', upload.single('image'), async (req, res) => {
-  try {
-    if (!req.file) return res.status(400).json({ success: false, message: 'Image required' });
 
-    const { itemName, description, foundLocation, category } = req.body;
-    if (!itemName || !description || !foundLocation || !category) 
-      return res.status(400).json({ success: false, message: 'All fields are required' });
-
-    const newItem = await Item.create({
-      itemName,
-      description,
-      foundLocation,
-      category,
-      handoverLocation: 'Security Office',
-      status: 'verified', // Admin uploads directly as verified
-      code: await generateUniqueCode(),
-      image: { url: req.file.path, public_id: req.file.filename }
-    });
-    console.log("item created with data from admin",newItem)
-    res.status(201).json({ success: true, item: newItem });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
 
 
 
@@ -158,7 +135,7 @@ router.get('/found', async (req, res) => {
     res.send(reportedItems)
 
   })
-
+// delete the reported items that found
   router.delete("/reported/:id", async (req, res) => {
     try {
       const ID = req.params.id;
@@ -172,6 +149,7 @@ router.get('/found', async (req, res) => {
       res.status(500).json({ message: "Internal server error" });
     }
   });
+  // delete the items uploaded by a user that he lost
   router.delete("/delete-lostItem/:id", async (req, res) => {
     try {
       const ID = req.params.id;
@@ -186,6 +164,116 @@ router.get('/found', async (req, res) => {
     }
   });
 
-   
-  
+
+  /////////////////////////////////////////////// ADMIN ROUTES///////////////////////////
+  // admin upload
+router.post('/admin/upload', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ success: false, message: 'Image required' });
+
+    const { itemName, description, foundLocation, category } = req.body;
+    if (!itemName || !description || !foundLocation || !category) 
+      return res.status(400).json({ success: false, message: 'All fields are required' });
+
+    const newItem = await Item.create({
+      itemName,
+      description,
+      foundLocation,
+      category,
+      handoverLocation: 'Security Office',
+      status: 'verified', // Admin uploads directly as verified
+      code: await generateUniqueCode(),
+      image: { url: req.file.path, public_id: req.file.filename }
+    });
+    console.log("item created with data from admin",newItem)
+    res.status(201).json({ success: true, item: newItem });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+// handover items
+router.put("/admin/:id/handover", upload.single("image"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ success: false, message: "Proof image required" });
+
+    const { id } = req.params;
+    const { contact, rollNo, name } = req.body;
+
+    if (!contact || !rollNo || !name) {
+      return res.status(400).json({ success: false, message: "All fields (contact, rollNo, name) are required" });
+    }
+
+    const item = await Item.findById(id);
+    if (!item) return res.status(404).json({ success: false, message: "Item not found" });
+
+    // Update status and store Cloudinary image details
+    item.status = "claimed";
+    item.claimerDetails = {
+      contact,
+      rollNo,
+      name,
+      proofs: [
+        ...(item.claimerDetails?.proofs || []),
+        { url: req.file.path, public_id: req.file.filename }
+      ]
+    };
+
+    await item.save();
+    console.log("Item handed over successfully with item details", item);
+    res.json({ success: true, message: "Item handed over successfully", item });
+  } catch (error) {
+    console.error("Error updating item:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+
+
+// Route to update item status and send the notification
+router.patch("/admin/updatestatus", async (req, res) => {
+  try {
+    const { id, status } = req.body;
+
+    if (!id || !status) {
+      return res.status(400).json({ message: "Item ID and status are required" });
+    }
+
+    const item = await Item.findById(id);
+    if (!item) {
+      return res.status(404).json({ message: "Item not found" });
+    }
+
+    // Prevent changing a claimed item back to pending
+    if (item.status === "claimed" && status === "pending") {
+      return res.status(400).json({ message: "Cannot change claimed item back to pending" });
+    }
+
+    // Update only the status field in the database
+    await Item.updateOne({ _id: id }, { $set: { status } });
+
+    // If the item is verified, notify lost item owners with matching category
+    if (status === "verified" && item.category) {
+      const lostItems = await LostItem.find({ category: item.category });
+      if (lostItems.length > 0) {
+        for (const lostItem of lostItems) {
+          await sendEmail(
+            lostItem.email, // lost user's email
+            "Lost Item Match Found!",
+            `Dear user, your lost ${item.category} "${item.itemName}" has been found and verified. Please check the portal for details.`
+          );
+          console.log("Email sent to:", lostItem.email);
+        }
+      } else {
+        console.log("No lost items found matching category:", item.category);
+      }
+    }
+
+    res.json({ message: "Status updated successfully" });
+  } catch (error) {
+    console.error("Error updating status:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+
 module.exports = router;

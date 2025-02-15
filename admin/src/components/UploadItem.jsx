@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
-import React from "react";
+
 function UploadItem() {
   const [itemName, setItemName] = useState("");
   const [category, setCategory] = useState("All");
