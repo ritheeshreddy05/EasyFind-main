@@ -53,7 +53,7 @@ const ReportItem = ({ onItemReported }) => {
       Object.keys(formData).forEach((key) => data.append(key, formData[key]));
       data.append('reporterRollNo', rollNo);
       if (image) data.append('image', image);
-      else console.log("there is no image")
+      else console.log("there is no image");
 
       const response = await submitFoundItem(data);
       if (response.success) {
@@ -63,7 +63,7 @@ const ReportItem = ({ onItemReported }) => {
           setSuccessMessage('');
           onItemReported?.(response.item);
           navigate('/');
-        }, 2000); // Wait 2 seconds before navigating
+        }, 2000);
       } else {
         throw new Error(response.message || 'Failed to report item');
       }
@@ -75,71 +75,75 @@ const ReportItem = ({ onItemReported }) => {
   };
 
   return (
-    <div className="max-w-xl mx-auto p-4">
-      {status && <p className="text-red-600 mb-3">{status}</p>}
-      {successMessage && <p className="text-green-600 mb-3">{successMessage}</p>}
-
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          name="itemName"
-          value={formData.itemName}
-          onChange={handleChange}
-          placeholder="Item title"
-          className="w-full p-2 border rounded mb-3"
-          required
-        />
-        <textarea
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          placeholder="Description"
-          className="w-full p-2 border rounded mb-3"
-          required
-        />
-        <input
-          type="text"
-          name="foundLocation"
-          value={formData.foundLocation}
-          onChange={handleChange}
-          placeholder="Found location"
-          className="w-full p-2 border rounded mb-3"
-          required
-        />
-        <select
-          name="category"
-          value={formData.category}
-          onChange={handleChange}
-          className="w-full p-2 border rounded mb-3"
-          required
-        >
-          <option value="">Select category</option>
-          <option value="Stationery">Stationery</option>
-          <option value="Electronics">Electronics</option>
-          <option value="Clothing">Clothing</option>
-          <option value="Personal belongings">Personal belongings</option>
-          <option value="Academic materials">Academic materials</option>
-          <option value="Accessories">Accessories</option>
-          <option value="Sports equipment">Sports equipment</option>
-          <option value="Food containers/Water bottles">Food containers/Water bottles</option>
-          <option value="Other">Other</option>
-        </select>
-
-        <input
-          type="file"
-          onChange={handleImageChange}
-          className="w-full p-2 border rounded mb-3"
-          accept="image/jpeg,image/jpg,image/png"
-          required
-        />
-        <button
-          type="submit"
-          className={`w-full p-2 bg-blue-500 text-white rounded ${loading ? 'opacity-50' : ''}`}
-          disabled={loading}
-        >
-          {loading ? 'Uploading...' : 'Submit'}
-        </button>
-      </form>
+    <div className="min-h-screen flex items-start justify-center bg-gradient-to-br from-blue-100 to-gray-100 p-4">
+      <div className="bg-white shadow-xl rounded-2xl p-6 w-full max-w-lg">
+        {status && <p className="text-red-600 mb-3">{status}</p>}
+        {successMessage && <p className="text-green-600 mb-3">{successMessage}</p>}
+        <h2 className="text-2xl font-semibold text-center mb-4 text-blue-700">
+          Report Found Item
+        </h2>
+        <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
+          <input
+            type="text"
+            name="itemName"
+            value={formData.itemName}
+            onChange={handleChange}
+            placeholder="Item Name"
+            className="border rounded-lg p-3 w-full shadow-sm focus:ring-2 focus:ring-blue-500"
+            required
+          />
+          <textarea
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            placeholder="Description"
+            rows="3"
+            className="border rounded-lg p-3 w-full shadow-sm focus:ring-2 focus:ring-blue-500"
+            required
+          ></textarea>
+          <input
+            type="text"
+            name="foundLocation"
+            value={formData.foundLocation}
+            onChange={handleChange}
+            placeholder="Found Location"
+            className="border rounded-lg p-3 w-full shadow-sm focus:ring-2 focus:ring-blue-500"
+            required
+          />
+          <select
+            name="category"
+            value={formData.category}
+            onChange={handleChange}
+            className="border rounded-lg p-3 w-full shadow-sm focus:ring-2 focus:ring-blue-500"
+            required
+          >
+            <option value="">Select Category</option>
+            <option value="stationery">Stationery</option>
+            <option value="electronics">Electronics</option>
+            <option value="clothing">Clothing</option>
+            <option value="personal_belongings">Personal Belongings</option>
+            <option value="academic_materials">Academic Materials</option>
+            <option value="accessories">Accessories</option>
+            <option value="sports_equipment">Sports Equipment</option>
+            <option value="food_containers">Food Containers/Water Bottles</option>
+            <option value="other">Other</option>
+          </select>
+          <input
+            type="file"
+            onChange={handleImageChange}
+            className="border rounded-lg p-3 w-full shadow-sm focus:ring-2 focus:ring-blue-500"
+            accept="image/jpeg,image/jpg,image/png"
+            required
+          />
+          <button
+            type="submit"
+            className={`bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition duration-300 transform hover:scale-105 ${loading ? 'opacity-50' : ''}`}
+            disabled={loading}
+          >
+            {loading ? 'Uploading...' : 'Submit'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 };
