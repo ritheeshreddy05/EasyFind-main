@@ -3,7 +3,6 @@ import axios from "axios";
 import { fetchReportedItems } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 
-
 function ReportedItems() {
   const { user } = useAuth();
   const [items, setItems] = useState([]);
@@ -57,7 +56,7 @@ function ReportedItems() {
               <p className="text-lg font-semibold text-gray-900">{item.title}</p>
               <p className="text-sm text-gray-600">Category: <span className="font-medium">{item.category}</span></p>
               <p className="text-sm text-gray-600">Location: <span className="font-medium">{item.foundLocation}</span></p>
-              <p className={`text-sm font-bold ${item.status === "approved" ? "text-green-600" : "text-yellow-600"}`}>
+              <p className={`text-sm font-bold ${item.status === "verified" ? "text-green-600" : "text-yellow-600"}`}>
                 Status: {item.status}
               </p>
             </div>
@@ -82,14 +81,14 @@ function ReportedItems() {
             ) : (
               <button
                 onClick={() => setConfirmDelete(item._id)}
-                disabled={item.status === "approved"}
+                disabled={item.status === "verified"}
                 className={`px-4 py-2 text-xs font-semibold rounded-lg shadow-md transition ${
-                  item.status === "approved"
+                  item.status === "verified"
                     ? "bg-gray-400 text-gray-700 cursor-not-allowed"
                     : "bg-red-500 text-white hover:bg-red-700"
                 }`}
               >
-                {item.status === "approved" ? "Cannot Delete" : "Delete"}
+                {item.status === "verified" ? "Cannot Delete" : "Delete"}
               </button>
             )}
           </li>
@@ -97,7 +96,6 @@ function ReportedItems() {
       </ul>
     </div>
   );
-  
 }
 
 export default ReportedItems;

@@ -100,7 +100,7 @@ const SearchItem = () => {
              
               <option value="stationery">Stationery</option>
               <option value="electronics">Electronics</option>
-              <option value="clothing">Clothing</option>
+              <option value="Clothing">Clothing</option>
               <option value="personal_belongings">Personal belongings</option>
               <option value="academic_materials">Academic materials</option>
               <option value="accessories">Accessories</option>
