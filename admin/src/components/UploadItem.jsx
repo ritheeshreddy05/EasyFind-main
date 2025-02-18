@@ -7,6 +7,7 @@ function UploadItem() {
   const [foundLocation, setFoundLocation] = useState("");
   const [description, setDescription] = useState("");
   const [image, setImage] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleFileChange = (e) => setImage(e.target.files[0]);
 
@@ -24,6 +25,8 @@ function UploadItem() {
     formData.append("foundLocation", foundLocation);
     formData.append("image", image);
 
+    setIsLoading(true);
+
     try {
       await axios.post("https://easyfind-main-demo.onrender.com/api/items/admin/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -38,6 +41,8 @@ function UploadItem() {
     } catch (error) {
       console.error("Upload failed:", error);
       alert("Failed to upload item.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -83,10 +88,11 @@ function UploadItem() {
           onChange={(e) => setFoundLocation(e.target.value)}
         />
         <input type="file" accept="image/*" onChange={handleFileChange} className="w-full px-4 py-2 border rounded-lg" />
-        <button type="submit" className="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition">
-          Upload Item
+        <button type="submit" className="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition" disabled={isLoading}>
+          {isLoading ? "Uploading..." : "Upload Item"}
         </button>
       </form>
+      {isLoading && <div className="text-center mt-4">Loading...</div>}
     </div>
   );
 }
