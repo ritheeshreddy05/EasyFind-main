@@ -53,7 +53,8 @@ function ReportedItems() {
               <img src={item.image.url} alt={item.title} className="w-20 h-20 object-cover rounded-lg shadow-md" />
             )}
             <div className="flex-1">
-              <p className="text-lg font-semibold text-gray-900">{item.title}</p>
+              <p className="text-lg font-semibold text-gray-900">{item.itemName}</p>
+              <p className="text-lg font-semibold text-gray-900">Code: {item.code}</p>
               <p className="text-sm text-gray-600">Category: <span className="font-medium">{item.category}</span></p>
               <p className="text-sm text-gray-600">Location: <span className="font-medium">{item.foundLocation}</span></p>
               <p className={`text-sm font-bold ${item.status === "verified" ? "text-green-600" : "text-yellow-600"}`}>

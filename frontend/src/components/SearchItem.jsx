@@ -151,7 +151,7 @@ const SearchItem = () => {
                   className="w-full h-48 object-cover"
                 />
                 <div className="p-4">
-                  <h5 className="text-lg font-bold text-gray-900">{item.title}</h5>
+                  <h5 className="text-lg font-bold text-gray-900">{item.itemName}</h5>
                   <p className="text-sm text-gray-600">{item.description}</p>
                   <p className="text-sm font-semibold text-blue-700">
                     Category: {item.category}

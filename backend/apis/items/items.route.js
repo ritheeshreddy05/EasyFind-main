@@ -141,7 +141,7 @@ router.get('/found', async (req, res) => {
       const ID = req.params.id;
       const item = await Item.findById(ID);
       if (!item) return res.status(404).json({ message: "Item not found" });
-      if (item.status === "approved") return res.status(403).json({ message: "Cannot delete an approved item" });
+      if (item.status === "verified") return res.status(403).json({ message: "Cannot delete an verified item" });
   
       const deletedItem = await Item.findOneAndDelete({ _id: ID });
       res.json({ message: "Delete successful", payload: deletedItem });
