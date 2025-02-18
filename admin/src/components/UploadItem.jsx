@@ -25,7 +25,7 @@ function UploadItem() {
     formData.append("image", image);
 
     try {
-      await axios.post("http://localhost:5000/api/items/admin/upload", formData, {
+      await axios.post("https://easyfind-main-demo.onrender.com/api/items/admin/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
