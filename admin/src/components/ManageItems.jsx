@@ -11,7 +11,7 @@ function ManageItems() {
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        const response = await axios.get("https://easyfind-main-demo.onrender.com/api/items/found");
+        const response = await axios.get("http://localhost:5000/api/items/found");
         setItems(response.data);
       } catch (error) {
         console.error("Error fetching items:", error);
@@ -22,7 +22,7 @@ function ManageItems() {
 
   const handleStatusChange = async (id, newStatus) => {
     try {
-      await axios.patch("https://easyfind-main-demo.onrender.com/api/items/admin/updatestatus", { id, status: newStatus });
+      await axios.patch("http://localhost:5000/api/items/admin/updatestatus", { id, status: newStatus });
       setItems(items.map(item => (item._id === id ? { ...item, status: newStatus } : item)));
     } catch (error) {
       console.error("Error updating status:", error);

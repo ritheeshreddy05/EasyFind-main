@@ -45,7 +45,7 @@ function GiveToStudent() {
 
     try {
       const response = await axios.put(
-        `https://easyfind-main-demo.onrender.com/api/items/admin/${selectedItem._id}/handover`,
+        `http://localhost:5000/api/items/admin/${selectedItem._id}/handover`,
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
