@@ -118,15 +118,15 @@ const ReportItem = ({ onItemReported }) => {
             required
           >
             <option value="">Select Category</option>
-            <option value="stationery">Stationery</option>
-            <option value="electronics">Electronics</option>
-            <option value="clothing">Clothing</option>
-            <option value="personal_belongings">Personal Belongings</option>
-            <option value="academic_materials">Academic Materials</option>
-            <option value="accessories">Accessories</option>
-            <option value="sports_equipment">Sports Equipment</option>
-            <option value="food_containers">Food Containers/Water Bottles</option>
-            <option value="other">Other</option>
+            <option value="Stationery">Stationery</option>
+            <option value="Electronics">Electronics</option>
+            <option value="Clothing">Clothing</option>
+            <option value="Personal Belongings">Personal Belongings</option>
+            <option value="Academic Materials">Academic Materials</option>
+            <option value="Accessories">Accessories</option>
+            <option value="Sports Equipment">Sports Equipment</option>
+            <option value="Food Containers/Water Bottles">Food Containers/Water Bottles</option>
+            <option value="Other">Other</option>
           </select>
           <input
             type="file"

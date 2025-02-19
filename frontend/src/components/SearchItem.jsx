@@ -98,15 +98,15 @@ const SearchItem = () => {
             >
               <option value="All">All Categories</option>
              
-              <option value="stationery">Stationery</option>
-              <option value="electronics">Electronics</option>
+              <option value="Stationery">Stationery</option>
+              <option value="Electronics">Electronics</option>
               <option value="Clothing">Clothing</option>
-              <option value="personal_belongings">Personal belongings</option>
-              <option value="academic_materials">Academic materials</option>
-              <option value="accessories">Accessories</option>
-              <option value="sports_equipment">Sports equipment</option>
-              <option value="food_containers">Food containers/Water bottles</option>
-              <option value="other">Other</option>
+              <option value="Personal belongings">Personal belongings</option>
+              <option value="Academic materials">Academic materials</option>
+              <option value="Accessories">Accessories</option>
+              <option value="Sports equipment">Sports equipment</option>
+              <option value="Food containers/Water bottles">Food containers/Water bottles</option>
+              <option value="Other">Other</option>
             </select>
           </div>
         </div>

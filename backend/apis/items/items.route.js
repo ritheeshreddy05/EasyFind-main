@@ -185,12 +185,29 @@ router.post('/admin/upload', upload.single('image'), async (req, res) => {
       code: await generateUniqueCode(),
       image: { url: req.file.path, public_id: req.file.filename }
     });
+    // If the item is verified, notify lost item owners with matching category
+    if (category) {
+      const lostItems = await LostItem.find({ category: newItem.category });
+      if (lostItems.length > 0) {
+        for (const lostItem of lostItems) {
+          await sendEmail(
+            lostItem.email, // lost user's email
+            "Lost Item Match Found!",
+            `Dear user, your lost ${newItem.category} "${newItem.itemName}" has been found and verified. Please check the portal for details.`
+          );
+          console.log("Email sent to:", lostItem.email);
+        }
+      } else {
+        console.log("No lost items found matching category:", newItem.category);
+      }
+    }
     console.log("item created with data from admin",newItem)
     res.status(201).json({ success: true, item: newItem });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 });
+
 // handover items
 router.put("/admin/:id/handover", upload.single("image"), async (req, res) => {
   try {
