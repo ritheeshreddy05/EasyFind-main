@@ -54,7 +54,7 @@ router.post('/found', upload.single('image'),auth, async (req, res) => {
           });
       }
 
-      const { itemName, description, foundLocation, reporterRollNo, category } = req.body;
+      const { itemName, description, foundLocation, reporterRollNo, category,reportedDate } = req.body;
 
       // Validate required fields
       if (!itemName || !description || !foundLocation || !reporterRollNo) {
@@ -80,6 +80,7 @@ router.post('/found', upload.single('image'),auth, async (req, res) => {
               url: req.file.path,
               public_id: req.file.filename
           },
+          reportedDate,
           category
       };
 
@@ -171,7 +172,7 @@ router.post('/admin/upload', upload.single('image'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ success: false, message: 'Image required' });
 
-    const { itemName, description, foundLocation, category } = req.body;
+    const { itemName, description, foundLocation, category,reportedDate } = req.body;
     if (!itemName || !description || !foundLocation || !category) 
       return res.status(400).json({ success: false, message: 'All fields are required' });
 
@@ -183,6 +184,7 @@ router.post('/admin/upload', upload.single('image'), async (req, res) => {
       handoverLocation: 'Security Office',
       status: 'verified', // Admin uploads directly as verified
       code: await generateUniqueCode(),
+      reportedDate,
       image: { url: req.file.path, public_id: req.file.filename }
     });
     // If the item is verified, notify lost item owners with matching category

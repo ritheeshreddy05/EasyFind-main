@@ -189,15 +189,22 @@ function ManageItems() {
               </div>
 
               {/* Full Details (Only if expanded) */}
+                      
               {expandedItem === item._id && (
                 <div className="mt-4 pt-4 border-t">
-                  <p className="text-sm text-gray-600">Description: {item.description}</p>
-                  <p className="text-sm text-gray-600">Location Found: {item.foundLocation}</p>
-                  <p className="text-sm text-gray-600">Reported Date: {new Date(item.reportedDate).toLocaleDateString()}</p>
+                {/* Add image preview here */}
+                {item.image?.url && (
+                  <img
+                  src={item.image.url}
+                  alt={item.itemName}
+                  className="max-w-[200px] h-auto rounded-md mb-3 border"
+                  />
+                )}
+                <p className="text-sm text-gray-600">Description: {item.description}</p>
+                <p className="text-sm text-gray-600">Location Found: {item.foundLocation}</p>
+                <p className="text-sm text-gray-600">Reported Date: {new Date(item.reportedDate).toLocaleDateString()}</p>
                 </div>
               )}
-
-              {/* Expand/Collapse Button */}
               <button
                 className="mt-2 text-sm text-blue-500 hover:text-blue-600"
                 onClick={() => setExpandedItem(expandedItem === item._id ? null : item._id)}

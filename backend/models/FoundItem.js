@@ -28,7 +28,7 @@ const foundItemSchema = new mongoose.Schema(
         },
         reporterRollNo: {
             type: String,
-            default:"admin",
+            default: "admin",
             required: true,
         },
         handoverLocation: {
@@ -59,6 +59,10 @@ const foundItemSchema = new mongoose.Schema(
                     public_id: String,
                 },
             ],
+        },
+        reportedDate: {
+            type: Date,
+            default: Date.now,
         },
     },
     {

@@ -18,9 +18,6 @@ function GiveToStudent() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [backendError, setBackendError] = useState("");
-  const [showImageModal, setShowImageModal] = useState(false);
-  const [selectedItemForVerification, setSelectedItemForVerification] = useState(null);
-  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -35,25 +32,36 @@ function GiveToStudent() {
     fetchItems();
   }, []);
 
+  const validatePhoneNumber = (number) => /^\d{10}$/.test(number);
+  const validateFile = (file) => file && file.size <= 5 * 1024 * 1024;
+
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
+      if (!validateFile(file)) {
+        setErrorMessage("File size too large (max 5MB)");
+        return;
+      }
       setProofImage(file);
       setProofImagePreview(URL.createObjectURL(file));
     }
   };
 
   const handleSubmitProofs = async () => {
+    setErrorMessage("");
+    setBackendError("");
+
     if (!selectedItem || !proofImage || !contact || !rollNo || !name || !handoverDate) {
       setErrorMessage("Please fill all details and upload a proof image.");
       return;
     }
 
-    setIsLoading(true);
-    setErrorMessage("");
-    setBackendError("");
-    setIsSuccess(false);
+    if (!validatePhoneNumber(contact)) {
+      setErrorMessage("Please enter a valid 10-digit phone number");
+      return;
+    }
 
+    setIsLoading(true);
     const formData = new FormData();
     formData.append("image", proofImage);
     formData.append("contact", contact);
@@ -62,7 +70,7 @@ function GiveToStudent() {
     formData.append("dateHandovered", new Date(handoverDate).toISOString());
 
     try {
-      const response = await axios.put(
+      await axios.put(
         `http://localhost:5000/api/items/admin/${selectedItem._id}/handover`,
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
@@ -81,7 +89,7 @@ function GiveToStudent() {
         } : item
       ));
 
-      // Reset all states
+      // Reset form
       setSelectedItem(null);
       setProofImage(null);
       setProofImagePreview(null);
@@ -91,20 +99,7 @@ function GiveToStudent() {
       setHandoverDate("");
       setIsSuccess(true);
     } catch (error) {
-      let errorMsg = "An unexpected error occurred. Please try again.";
-      
-      if (error.response) {
-        if (error.response.data.errors) {
-          errorMsg = Object.values(error.response.data.errors)
-            .map(err => err.message)
-            .join(', ');
-        } else {
-          errorMsg = error.response.data.message || "Server error occurred";
-        }
-      } else if (error.request) {
-        errorMsg = "No response from server. Please check your connection.";
-      }
-      
+      const errorMsg = error.response?.data?.message || "An unexpected error occurred";
       setBackendError(errorMsg);
     } finally {
       setIsLoading(false);
@@ -115,9 +110,26 @@ function GiveToStudent() {
     }
   };
 
+  const toggleHandoverForm = (item) => {
+    setSelectedItem(prev => prev?._id === item._id ? null : item);
+    setErrorMessage("");
+    setBackendError("");
+    setName("");
+    setRollNo("");
+    setContact("");
+    setHandoverDate("");
+    setProofImage(null);
+    setProofImagePreview(null);
+  };
+
   const formatDate = (dateString) => {
-    const options = { year: "numeric", month: "short", day: "numeric" };
-    return new Date(dateString).toLocaleDateString("en-US", options);
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
   };
 
   const filteredItems = items
@@ -126,31 +138,33 @@ function GiveToStudent() {
       (searchCategory ? item.category.toLowerCase().includes(searchCategory.toLowerCase()) : true) &&
       item.status === filterStatus
     )
-    .sort((a, b) => {
-      if (a.status === "claimed" && b.status === "claimed") {
-        return new Date(b.DateHandovered) - new Date(a.DateHandovered);
-      }
-      return 0;
-    });
+    .sort((a, b) => new Date(b.reportedDate) - new Date(a.reportedDate));
 
-  const handleStatusChange = async (itemId, status) => {
-    setUpdatingStatus(true);
-    try {
-      await axios.put(`http://localhost:5000/api/items/admin/${itemId}/status`, { status });
-      setItems(items.map(item => 
-        item._id === itemId ? { ...item, status } : item
-      ));
-      setShowImageModal(false);
-    } catch (error) {
-      console.error("Error updating status:", error);
-    } finally {
-      setUpdatingStatus(false);
-    }
-  };
+  const LoadingSpinner = () => (
+    <span className="flex items-center justify-center">
+      <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+        <circle
+          className="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          strokeWidth="4"
+          fill="none"
+        />
+        <path
+          className="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+        />
+      </svg>
+      Processing...
+    </span>
+  );
 
   return (
     <div className="container mx-auto p-4">
-      <h3 className="text-2xl font-bold mb-6">Give Item to Student</h3>
+      <h1 className="text-3xl font-bold mb-6 text-gray-800">Item Management Dashboard</h1>
 
       {/* Status Messages */}
       {isSuccess && (
@@ -158,168 +172,149 @@ function GiveToStudent() {
           ✅ Handover successful!
         </div>
       )}
-      
       {errorMessage && (
         <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded-md mb-4">
           ⚠️ {errorMessage}
         </div>
       )}
-      
       {backendError && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md mb-4">
           ❌ Error: {backendError}
         </div>
       )}
 
-      {/* Search and Filter Section */}
-      <div className="flex flex-wrap gap-4 mb-6">
-        <input
-          type="text"
-          placeholder="Search by Code"
-          className="border px-3 py-2 rounded-md flex-1 min-w-[200px]"
-          onChange={(e) => setSearchCode(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Search by Category"
-          className="border px-3 py-2 rounded-md flex-1 min-w-[200px]"
-          onChange={(e) => setSearchCategory(e.target.value)}
-        />
-      </div>
+      {/* Controls Section */}
+      <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
+        <div className="flex flex-wrap gap-4 mb-4">
+          <input
+            type="text"
+            placeholder="Search by Item Code"
+            className="border px-3 py-2 rounded-md flex-1 min-w-[200px]"
+            onChange={(e) => setSearchCode(e.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Search by Category"
+            className="border px-3 py-2 rounded-md flex-1 min-w-[200px]"
+            onChange={(e) => setSearchCategory(e.target.value)}
+          />
+        </div>
 
-      <div className="flex flex-wrap gap-4 mb-6">
-        <button
-          className={`px-4 py-2 rounded-md ${
-            filterStatus === "verified" 
-              ? "bg-blue-500 text-white" 
-              : "bg-gray-200 hover:bg-gray-300"
-          }`}
-          onClick={() => setFilterStatus("verified")}
-        >
-          Show Verified
-        </button>
-        <button
-          className={`px-4 py-2 rounded-md ${
-            filterStatus === "pending" 
-              ? "bg-blue-500 text-white" 
-              : "bg-gray-200 hover:bg-gray-300"
-          }`}
-          onClick={() => setFilterStatus("pending")}
-        >
-          Show Pending
-        </button>
-        <button
-          className={`px-4 py-2 rounded-md ${
-            filterStatus === "claimed" 
-              ? "bg-blue-500 text-white" 
-              : "bg-gray-200 hover:bg-gray-300"
-          }`}
-          onClick={() => setFilterStatus("claimed")}
-        >
-          Show Claimed
-        </button>
+        <div className="flex flex-wrap gap-2">
+          {["verified", "claimed"].map((status) => (
+            <button
+              key={status}
+              className={`px-4 py-2 rounded-md capitalize ${
+                filterStatus === status
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+              }`}
+              onClick={() => setFilterStatus(status)}
+            >
+              {status}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Items List */}
       <ul className="space-y-4">
         {filteredItems.map(item => (
-          <li key={item._id} className="p-4 border rounded-md shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex justify-between items-center">
+          <li key={item._id} className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex justify-between items-start">
               <div className="flex-1">
-                <p className="font-semibold text-lg">
-                  {item.itemName} <span className="text-sm text-gray-600">(Code: {item.code})</span>
-                </p>
-                <p className="text-sm text-gray-600">Category: {item.category}</p>
-                <p className={`text-sm font-semibold ${
-                  item.status === "verified" ? "text-blue-600" :
-                  item.status === "claimed" ? "text-green-600" : "text-yellow-600"
-                }`}>
-                  Status: {item.status.toUpperCase()}
-                </p>
-                {item.status === "claimed" && (
-                  <p className="text-sm text-gray-500 mt-1">
-                    Handover Date: {formatDate(item.claimerDetails.dateHandovered)}
-                  </p>
-                )}
+                <div className="flex items-center gap-3 mb-2">
+                  <span className={`inline-block w-3 h-3 rounded-full ${
+                    item.status === 'verified' ? 'bg-blue-500' : 'bg-green-500'
+                  }`}></span>
+                  <h3 className="text-lg font-semibold">{item.itemName}</h3>
+                  <span className="text-sm text-gray-500">(Code: {item.code})</span>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div>
+                    <label className="text-gray-500">Category:</label>
+                    <p className="font-medium">{item.category}</p>
+                  </div>
+                  <div>
+                    <label className="text-gray-500">Status:</label>
+                    <p className="capitalize font-medium">{item.status}</p>
+                  </div>
+                  <div>
+                    <label className="text-gray-500">Reported Date:</label>
+                    <p className="font-medium">{formatDate(item.reportedDate)}</p>
+                  </div>
+                  <div>
+                    <label className="text-gray-500">foundLocation:</label>
+                    <p className="capitalize font-medium">{item.foundLocation}</p>
+                  </div>
+                  {item.status === "claimed" && (
+                    <div>
+                      <label className="text-gray-500">Handover Date:</label>
+                      <p className="font-medium">{formatDate(item.claimerDetails?.dateHandovered)}</p>
+                    </div>
+                  )}
+                </div>
                 {item.status === "claimed" && <ClaimedItemDetails item={item} />}
               </div>
-              
-              {item.status === "verified" && (
-                <button
-                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md ml-4"
-                  onClick={() => {
-                    // Toggle form visibility and reset states
-                    if (selectedItem?._id === item._id) {
-                      setSelectedItem(null);
-                    } else {
-                      setSelectedItem(item);
-                      setName("");
-                      setRollNo("");
-                      setContact("");
-                      setHandoverDate("");
-                      setProofImage(null);
-                      setProofImagePreview(null);
-                    }
-                    setErrorMessage("");
-                    setBackendError("");
-                  }}
-                >
-                  {selectedItem?._id === item._id ? "Close Form" : "Hand Over"}
-                </button>
-              )}
+
+              <div className="flex flex-col gap-2 ml-4">
+                {item.status === "verified" && (
+                  <button
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm"
+                    onClick={() => toggleHandoverForm(item)}
+                  >
+                    {selectedItem?._id === item._id ? "Close" : "Handover"}
+                  </button>
+                )}
+              </div>
             </div>
 
-            {/* Handover Form - Rendered under the selected item */}
+            {/* Handover Form */}
             {selectedItem?._id === item._id && (
               <div className="mt-4 pt-4 border-t">
-                <h4 className="text-lg font-semibold mb-4">
-                  Handover Details for: {item.itemName}
-                </h4>
+                <h4 className="text-lg font-semibold mb-4">Handover Details</h4>
                 
-                {/* Item Image Preview */}
-                {item.imageUrl && (
-                  <div className="mb-4">
-                    <img
-                      src={item.imageUrl}
-                      alt={item.itemName}
-                      className="w-32 h-32 object-contain rounded-md border"
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Student Name</label>
+                    <input
+                      type="text"
+                      className="border px-3 py-2 rounded-md w-full"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
                     />
-                    <p className="text-sm text-gray-500 mt-1">Item Image</p>
                   </div>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input
-                    type="text"
-                    placeholder="Student Name"
-                    className="border px-3 py-2 rounded-md"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Roll Number"
-                    className="border px-3 py-2 rounded-md"
-                    value={rollNo}
-                    onChange={(e) => setRollNo(e.target.value)}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Contact Number"
-                    className="border px-3 py-2 rounded-md"
-                    value={contact}
-                    onChange={(e) => setContact(e.target.value)}
-                  />
-                  <input
-                    type="date"
-                    className="border px-3 py-2 rounded-md"
-                    value={handoverDate}
-                    onChange={(e) => setHandoverDate(e.target.value)}
-                  />
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Roll Number</label>
+                    <input
+                      type="text"
+                      className="border px-3 py-2 rounded-md w-full"
+                      value={rollNo}
+                      onChange={(e) => setRollNo(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Contact Number</label>
+                    <input
+                      type="tel"
+                      className="border px-3 py-2 rounded-md w-full"
+                      value={contact}
+                      onChange={(e) => setContact(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Handover Date</label>
+                    <input
+                      type="date"
+                      className="border px-3 py-2 rounded-md w-full"
+                      value={handoverDate}
+                      onChange={(e) => setHandoverDate(e.target.value)}
+                    />
+                  </div>
                 </div>
 
-                <div className="mt-4">
-                  <label className="block mb-2 font-medium">Upload Handover Proof:</label>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-2">Handover Proof</label>
                   <input
                     type="file"
                     accept="image/*"
@@ -335,137 +330,26 @@ function GiveToStudent() {
                     <div className="mt-2">
                       <img
                         src={proofImagePreview}
-                        alt="Proof Preview"
+                        alt="Proof preview"
                         className="w-32 h-32 object-contain rounded-md border"
                       />
-                      <p className="text-sm text-gray-500 mt-1">Proof Image Preview</p>
+                      <p className="text-sm text-gray-500 mt-1">Preview</p>
                     </div>
                   )}
                 </div>
 
                 <button
-                  className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md disabled:opacity-50"
                   onClick={handleSubmitProofs}
                   disabled={isLoading}
                 >
-                  {isLoading ? (
-                    <span className="flex items-center justify-center">
-                      <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                          fill="none"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        />
-                      </svg>
-                      Processing...
-                    </span>
-                  ) : (
-                    "Confirm Handover"
-                  )}
+                  {isLoading ? <LoadingSpinner /> : "Confirm Handover"}
                 </button>
               </div>
             )}
           </li>
         ))}
       </ul>
-
-      {/* Enhanced Verification Modal */}
-      {showImageModal && selectedItemForVerification && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full">
-            <h3 className="text-xl font-bold mb-4">Verify Item Details</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-              {/* Image Section */}
-              <div className="flex flex-col">
-                <img
-                  src={selectedItemForVerification.imageUrl}
-                  alt={selectedItemForVerification.itemName}
-                  className="w-full h-64 object-contain rounded-md mb-2"
-                />
-                <p className="text-sm text-gray-500 text-center">
-                  Item Image
-                </p>
-              </div>
-
-              {/* Text Details Section */}
-              <div className="space-y-2">
-                <p className="font-semibold">
-                  <span className="text-gray-600">Code:</span>{" "}
-                  {selectedItemForVerification.code}
-                </p>
-                <p>
-                  <span className="text-gray-600">Name:</span>{" "}
-                  {selectedItemForVerification.itemName}
-                </p>
-                <p>
-                  <span className="text-gray-600">Category:</span>{" "}
-                  {selectedItemForVerification.category}
-                </p>
-                <p>
-                  <span className="text-gray-600">Description:</span>{" "}
-                  {selectedItemForVerification.description}
-                </p>
-                <p>
-                  <span className="text-gray-600">Found Location:</span>{" "}
-                  {selectedItemForVerification.foundLocation}
-                </p>
-                <p>
-                  <span className="text-gray-600">Reported Date:</span>{" "}
-                  {new Date(selectedItemForVerification.reportedDate).toLocaleDateString()}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex justify-end space-x-4 border-t pt-4">
-              <button
-                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md"
-                onClick={() => setShowImageModal(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
-                onClick={() => handleStatusChange(selectedItemForVerification._id, "verified")}
-                disabled={updatingStatus}
-              >
-                {updatingStatus ? (
-                  <span className="flex items-center">
-                    <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                        fill="none"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      />
-                    </svg>
-                    Verifying...
-                  </span>
-                ) : (
-                  "Confirm Verification"
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

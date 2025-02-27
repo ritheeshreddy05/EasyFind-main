@@ -8,6 +8,7 @@ function UploadItem() {
   const [description, setDescription] = useState("");
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [reportedDate, setReportedDate] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
@@ -41,6 +42,7 @@ function UploadItem() {
     if (!foundLocation) missingFields.push("Found Location");
     if (!description) missingFields.push("Description");
     if (!image) missingFields.push("Image");
+    if (!reportedDate) missingFields.push("Date of Found");
 
     if (missingFields.length > 0) {
       setErrorMessage(`Please fill all required fields: ${missingFields.join(", ")}`);
@@ -55,6 +57,7 @@ function UploadItem() {
     formData.append("category", category);
     formData.append("foundLocation", foundLocation);
     formData.append("image", image);
+    formData.append("reportedDate", reportedDate);
 
     try {
       await axios.post("http://localhost:5000/api/items/admin/upload", formData, {
@@ -68,6 +71,7 @@ function UploadItem() {
       setDescription("");
       setImage(null);
       setImagePreview(null);
+      setReportedDate("");
       setFileInputKey(Date.now());
     } catch (error) {
       let errorMsg = "Failed to upload item. Please try again.";
@@ -149,6 +153,18 @@ function UploadItem() {
             className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
             value={foundLocation}
             onChange={(e) => setFoundLocation(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="block mb-2 text-sm font-medium text-gray-700">
+            Date of Found
+          </label>
+          <input
+            type="date"
+            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+            value={reportedDate}
+            onChange={(e) => setReportedDate(e.target.value)}
           />
         </div>
 

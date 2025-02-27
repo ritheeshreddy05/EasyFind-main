@@ -11,7 +11,8 @@ const ReportItem = ({ onItemReported }) => {
     description: '',
     foundLocation: '',
     category: '',
-    handoverLocation: ''
+    handoverLocation: '',
+    reportedDate: '' // Added reportedDate to formData
   });
   const [image, setImage] = useState(null);
   const [status, setStatus] = useState('');
@@ -19,7 +20,7 @@ const ReportItem = ({ onItemReported }) => {
   const [successMessage, setSuccessMessage] = useState('');
 
   const resetForm = () => {
-    setFormData({ itemName: '', description: '', foundLocation: '', category: '' });
+    setFormData({ itemName: '', description: '', foundLocation: '', category: '', reportedDate: '' });
     setImage(null);
     setStatus('');
   };
@@ -128,6 +129,15 @@ const ReportItem = ({ onItemReported }) => {
             <option value="Food Containers/Water Bottles">Food Containers/Water Bottles</option>
             <option value="Other">Other</option>
           </select>
+          <input
+            type="date"
+            name="reportedDate"
+            value={formData.reportedDate}
+            onChange={handleChange}
+            placeholder="Reported Date"
+            className="border rounded-lg p-3 w-full shadow-sm focus:ring-2 focus:ring-blue-500"
+            required
+          />
           <input
             type="file"
             onChange={handleImageChange}
