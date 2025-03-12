@@ -92,7 +92,7 @@ function UploadItem() {
 
   return (
     <div className="max-w-lg mx-auto bg-white p-6 rounded-xl shadow-lg">
-      <h3 className="text-2xl font-semibold text-gray-700 mb-4 text-center">Upload Found Item</h3>
+      <h3 className="text-2xl font-semibold text-gray-700 mb-4 text-center">Upload found Item</h3>
       
       {/* Status Messages */}
       {isSuccess && (

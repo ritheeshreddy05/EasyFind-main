@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from "react-router-dom";
 import { styled, createTheme, ThemeProvider, useTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import MuiDrawer from '@mui/material/Drawer';
@@ -19,9 +19,10 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import CheckIcon from '@mui/icons-material/Check';
 import PeopleIcon from '@mui/icons-material/People';
 import UploadIcon from '@mui/icons-material/Upload';
-import useMediaQuery from '@mui/material/useMediaQuery';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 
 // Import your components
+import Admin from './components/Login';
 import AdminDashboard from "./components/Dashboard";
 import ApproveItems from "./components/ManageItems";
 import GiveToStudent from "./components/GiveToStudent";
@@ -44,12 +45,24 @@ const menuItems = [
   { text: 'Upload Item', path: '/admin/upload', icon: <UploadIcon /> },
 ];
 
+// ProtectedRoute component
+function ProtectedRoute({ children }) {
+  const token = localStorage.getItem('adminToken');
+  return token ? children : <Navigate to="/login" replace />;
+}
+
 function AppContent() {
   const theme = useTheme();
   const [open, setOpen] = useState(false);
 
   const handleDrawerToggle = () => {
     setOpen(!open);
+  };
+
+  // Logout handler to remove the token and redirect to login
+  const handleLogout = () => {
+    localStorage.removeItem('adminToken');
+    window.location.href = '/login';
   };
 
   return (
@@ -78,7 +91,7 @@ function AppContent() {
         open={open}
         onClose={handleDrawerToggle}
         ModalProps={{
-          keepMounted: true, // Better mobile performance
+          keepMounted: true,
         }}
         sx={{
           '& .MuiDrawer-paper': {
@@ -118,6 +131,23 @@ function AppContent() {
               <ListItemText primary={item.text} />
             </ListItem>
           ))}
+          {/* Logout Option */}
+          <ListItem
+            button
+            onClick={handleLogout}
+            sx={{
+              textDecoration: 'none',
+              color: 'inherit',
+              '&:hover': {
+                backgroundColor: 'rgba(0, 0, 0, 0.04)',
+              },
+            }}
+          >
+            <ListItemIcon>
+              <ExitToAppIcon />
+            </ListItemIcon>
+            <ListItemText primary="Logout" />
+          </ListItem>
         </List>
       </MuiDrawer>
 
@@ -132,11 +162,34 @@ function AppContent() {
         <Toolbar />
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
           <Routes>
-            <Route path="/" element={<AdminDashboard />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/approve" element={<ApproveItems />} />
-            <Route path="/admin/give" element={<GiveToStudent />} />
-            <Route path="/admin/upload" element={<UploadItem />} />
+            {/* Public route */}
+            <Route path="/login" element={<Admin />} />
+            {/* Protected Routes */}
+            <Route path="/" element={
+              <ProtectedRoute>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin" element={
+              <ProtectedRoute>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/approve" element={
+              <ProtectedRoute>
+                <ApproveItems />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/give" element={
+              <ProtectedRoute>
+                <GiveToStudent />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/upload" element={
+              <ProtectedRoute>
+                <UploadItem />
+              </ProtectedRoute>
+            } />
           </Routes>
         </Container>
       </Box>

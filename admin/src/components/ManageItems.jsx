@@ -78,7 +78,7 @@ function ManageItems() {
 
   return (
     <div className="container mx-auto p-4">
-      <h3 className="text-2xl font-bold mb-6">Manage Found Items</h3>
+      <h3 className="text-2xl font-bold mb-6">Approove Items</h3>
 
       {/* Status Messages */}
       {isSuccess && (

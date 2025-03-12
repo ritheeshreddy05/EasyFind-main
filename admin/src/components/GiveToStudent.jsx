@@ -164,7 +164,7 @@ function GiveToStudent() {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">Item Management Dashboard</h1>
+      <h1 className="text-3xl font-bold mb-6 text-gray-800">Give To Student</h1>
 
       {/* Status Messages */}
       {isSuccess && (

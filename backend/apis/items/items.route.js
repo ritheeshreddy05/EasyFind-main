@@ -167,6 +167,59 @@ router.get('/found', async (req, res) => {
 
 
   /////////////////////////////////////////////// ADMIN ROUTES///////////////////////////
+  // admin login
+  // routes/adminAuth.js
+// const express = require('express');
+// const router = express.Router();
+const Admin = require('../../models/Admin');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
+// POST /api/admin/login
+router.post('/admin/login', async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    // Find the admin by username
+    const admin = await Admin.findOne({ username });
+
+    console.log("username:",admin)
+
+    if (!admin) {
+      return res.status(400).json({ msg: 'Invalid credentials' });
+    }
+
+
+    bcrypt.hash("password123", 10).then(hash => console.log(hash));
+
+
+    // Compare the entered password with the stored hashed password
+    const isMatch = await bcrypt.compare(password, admin.password);
+    if (!isMatch) {
+      return res.status(400).json({ msg: 'Invalid credentials' });
+    }
+
+    // Create a JWT payload
+    const payload = { admin: { id: admin.id } };
+
+    // Sign the JWT token
+    jwt.sign(
+      payload,
+      process.env.JWT_SECRET, // ensure this is defined in your environment
+      { expiresIn: '1h' },
+      (err, token) => {
+        if (err) throw err;
+        console.log("login successful")
+        
+        res.json({ token });
+      }
+    );
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
   // admin upload
 router.post('/admin/upload', upload.single('image'), async (req, res) => {
   try {
